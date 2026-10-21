@@ -1,0 +1,786 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ovozchi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: one narrow working column; step blocks stacked in the order you use them */
+:root {
+  --bg: #F3F5F9;
+  --surface: #FFFFFF;
+  --line: #D8DEE8;
+  --fg: #172033;
+  --muted: #5B6578;
+  --accent: #1F4E9C;      /* lapis */
+  --accent-2: #138A8A;    /* turquoise */
+  --accent-fg: #FFFFFF;
+  --ok: #1D7A46;
+  --err: #B3261E;
+  --font-body: "Golos Text", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F1522; --surface: #171F30; --line: #2A3448; --fg: #E6EAF2; --muted: #98A2B6;
+    --accent: #7FA6EB; --accent-2: #4CC2C2; --accent-fg: #0F1522; --ok: #5CC68A; --err: #F08A80;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F1522; --surface: #171F30; --line: #2A3448; --fg: #E6EAF2; --muted: #98A2B6;
+  --accent: #7FA6EB; --accent-2: #4CC2C2; --accent-fg: #0F1522; --ok: #5CC68A; --err: #F08A80;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font: 16px/1.55 var(--font-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+}
+main { max-width: 680px; margin: 0 auto; display: grid; gap: 20px; }
+header h1 { margin: 0; font-size: 2rem; font-weight: 700; letter-spacing: -0.01em; text-wrap: balance; }
+header p { margin: 4px 0 0; color: var(--muted); }
+.tile-strip { height: 8px; border-radius: 4px; margin-bottom: 16px;
+  background: repeating-linear-gradient(90deg, var(--accent) 0 18px, var(--accent-2) 18px 24px, transparent 24px 30px); }
+section { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; display: grid; gap: 14px; }
+section h2 { margin: 0; font-size: 1.1rem; display: flex; gap: 10px; align-items: baseline; }
+.step { font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent); letter-spacing: 0.06em; }
+label { font-weight: 500; font-size: 0.92rem; display: grid; gap: 6px; }
+.hint { color: var(--muted); font-size: 0.85rem; font-weight: 400; margin: 0; }
+input[type=text], input[type=password], select, textarea {
+  width: 100%; font: inherit; color: var(--fg); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px;
+}
+textarea { min-height: 180px; resize: vertical; }
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible, a:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.row > * { min-width: 0; }
+.grow { flex: 1 1 220px; }
+button, .btn {
+  font: inherit; font-weight: 600; border-radius: 8px; padding: 10px 16px; cursor: pointer;
+  border: 1px solid var(--accent); background: var(--accent); color: var(--accent-fg); text-decoration: none; display: inline-block;
+}
+button.ghost { background: transparent; color: var(--accent); }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+.check { display: flex; gap: 10px; align-items: flex-start; font-weight: 400; }
+.check input { margin-top: 4px; }
+.status { font-size: 0.9rem; min-height: 1.4em; margin: 0; }
+.status.ok { color: var(--ok); } .status.err { color: var(--err); }
+.counter { font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.files { display: grid; gap: 8px; }
+.sample { display: grid; gap: 8px; padding: 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
+.sample .name { flex: 1; min-width: 0; font-weight: 500; overflow-wrap: anywhere; font-size: 0.92rem; }
+.sample .meta { display: block; font-size: 0.78rem; color: var(--muted); font-weight: 400; font-variant-numeric: tabular-nums; }
+.del { padding: 6px 10px; flex: 0 0 auto; }
+.sample-top { display: flex; align-items: center; gap: 12px; }
+.sample audio { width: 100%; }
+audio { width: 100%; }
+.rec-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--err); display: inline-block; animation: pulse 1s infinite; }
+@keyframes pulse { 50% { opacity: 0.3; } }
+@media (prefers-reduced-motion: reduce) { .rec-dot { animation: none; } }
+.voice-head { display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.label-text { font-weight: 500; font-size: 0.92rem; }
+.voice-head input { flex: 0 1 200px; padding: 8px 10px; }
+.voice-list { border: 1px solid var(--line); border-radius: 10px; max-height: 320px; overflow-y: auto; background: var(--bg); }
+.voice { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-bottom: 1px solid var(--line); cursor: pointer; }
+.voice:last-child { border-bottom: 0; }
+.voice[aria-checked="true"] { background: var(--surface); box-shadow: inset 3px 0 0 var(--accent); }
+.voice .name { flex: 1; min-width: 0; font-weight: 500; overflow-wrap: anywhere; }
+.voice .meta { display: block; font-size: 0.78rem; color: var(--muted); font-weight: 400; }
+.voice .tick { color: var(--accent); font-weight: 700; visibility: hidden; }
+.voice[aria-checked="true"] .tick { visibility: visible; }
+.play { width: 40px; height: 40px; flex: 0 0 40px; border-radius: 50%; padding: 0; display: grid; place-items: center;
+  background: transparent; color: var(--accent); border: 1px solid var(--accent); font-size: 0.9rem; }
+.play.playing { background: var(--accent); color: var(--accent-fg); }
+.clips { display: grid; gap: 12px; }
+.clip { border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: grid; gap: 8px; background: var(--bg); }
+.clip-title { font-weight: 600; overflow-wrap: anywhere; }
+.clip-meta { font-size: 0.8rem; color: var(--muted); }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.stat { display: grid; gap: 2px; }
+.stat-label { font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.stat-val { font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.meter { height: 8px; background: var(--bg); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+#meterFill { height: 100%; width: 0; background: var(--accent-2); transition: width .4s; }
+.links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.link-btn { display: grid; gap: 2px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; color: var(--accent);
+  font-weight: 600; text-decoration: none; background: var(--bg); }
+.link-btn small { color: var(--muted); font-weight: 400; font-size: 0.8rem; }
+@media (max-width: 420px) { .links { grid-template-columns: 1fr; } }
+.confirm { border: 1px solid var(--accent); border-radius: 10px; padding: 14px; display: grid; gap: 10px; background: var(--bg); }
+.confirm-title { font-weight: 700; }
+.confirm dl { margin: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 14px; font-size: 0.92rem; }
+.confirm dt { color: var(--muted); }
+.confirm dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.confirm dd.warn, .counter.over { color: var(--err); }
+@media (max-width: 420px) { .confirm dl { grid-template-columns: 1fr; gap: 2px; } .confirm dd { margin-bottom: 6px; } }
+.err-text { color: var(--err); }
+footer { color: var(--muted); font-size: 0.82rem; text-align: center; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="tile-strip" aria-hidden="true"></div>
+    <h1>Ovozchi</h1>
+    <p>Matnni o'zbekcha ovozga aylantiring, ovozingizni klonlang va MP3 qilib yuklab oling.</p>
+  </header>
+
+  <section>
+    <h2><span class="step">1-QADAM</span> ElevenLabs API kaliti</h2>
+    <label for="apiKey">API kalit
+      <input id="apiKey" type="password" placeholder="sk_..." autocomplete="off">
+    </label>
+    <p class="hint">Kalitni elevenlabs.io → Profile → API Keys bo'limidan olasiz. U faqat shu brauzerda saqlanadi.</p>
+    <div class="row">
+      <button id="saveKey">Saqlash va ovozlarni yuklash</button>
+      <button id="clearKey" class="ghost">Kalitni o'chirish</button>
+    </div>
+    <p id="keyStatus" class="status"></p>
+  </section>
+
+  <section>
+    <h2><span class="step">2-QADAM</span> Ovozni klonlash</h2>
+    <label for="voiceName">Ovoz nomi
+      <input id="voiceName" type="text" placeholder="Masalan: Mening ovozim">
+    </label>
+    <label for="voiceFiles">Ovoz yozuvlari (MP3, WAV, M4A)
+      <input id="voiceFiles" type="file" accept=".mp3,.m4a,.wav,.aac,.ogg,.webm,.flac,audio/mpeg,audio/mp4,audio/x-m4a,audio/wav,audio/aac" multiple>
+    </label>
+    <p class="hint">1–3 daqiqalik toza, shovqinsiz o'zbekcha nutq eng yaxshi natija beradi. iPhone'da: Diktofon (Voice Memos) yozuvini Share → Save to Files qiling, keyin bu yerda <b>Choose File / Browse</b> orqali Files'dan tanlang (Photo Library'da audio ko'rinmaydi).</p>
+    <div class="row">
+      <button id="recBtn" class="ghost">🎙 Mikrofondan yozish</button>
+      <span id="recInfo" class="hint"></span>
+    </div>
+    <div id="fileList" class="files"></div>
+    <label class="check" for="consent">
+      <input id="consent" type="checkbox">
+      <span>Bu mening ovozim yoki ovoz egasidan yozma ruxsat olganman.</span>
+    </label>
+    <button id="cloneBtn">Ovozni klonlash</button>
+    <p id="cloneStatus" class="status"></p>
+  </section>
+
+  <section>
+    <h2><span class="step">3-QADAM</span> Matnni ovozga aylantirish</h2>
+    <select id="voiceSelect" hidden aria-hidden="true"><option value=""></option></select>
+    <div class="voice-head">
+      <span class="label-text">Ovoz tanlang</span>
+      <input id="voiceFilter" type="text" placeholder="Qidirish…" aria-label="Ovozlarni qidirish">
+    </div>
+    <div id="voiceList" class="voice-list" role="radiogroup" aria-label="Ovozlar">
+      <p class="hint" style="padding:12px">Avval 1-qadamda API kalitni saqlang.</p>
+    </div>
+    <p class="hint">▶ tugmasi ovoz namunasini eshittiradi. Tayyor ovozlar namunasi odatda inglizcha bo'ladi.</p>
+    <div class="row">
+      <label class="grow" for="modelSelect">Model
+        <select id="modelSelect">
+          <option value="eleven_v3">Eleven v3 (o'zbek tili bor)</option>
+          <option value="custom">Boshqa model ID…</option>
+        </select>
+      </label>
+    </div>
+    <label for="customModel" id="customModelWrap" hidden>Model ID
+      <input id="customModel" type="text" placeholder="model_id">
+    </label>
+    <label for="textIn">Matn
+      <textarea id="textIn">Assalomu alaykum! Do'konimizda sifatli ishlatilgan telefonlar va aksessuarlar bor. Buyurtmangizni tez va xavfsiz yetkazib beramiz.</textarea>
+    </label>
+    <label for="clipName">Audio nomi
+      <input id="clipName" type="text" placeholder="Masalan: Do'kon reklamasi 1">
+    </label>
+    <p class="hint">Bo'sh qoldirsangiz, matnning birinchi so'zlaridan nom qo'yiladi. MP3 fayl shu nom bilan saqlanadi.</p>
+    <div class="row" style="justify-content:space-between">
+      <span id="charCount" class="counter">0 belgi</span>
+      <button id="speakBtn">Ovozga aylantirish</button>
+    </div>
+    <p id="ttsStatus" class="status"></p>
+  </section>
+
+  <section id="clipsSection" hidden>
+    <h2><span class="step">NATIJALAR</span> Yaratilgan audiolar</h2>
+    <p class="hint">Bu ro'yxat sahifa yangilanguncha turadi. Kerakli audiolarni yuklab oling.</p>
+    <div id="clips" class="clips"></div>
+  </section>
+
+  <section>
+    <h2><span class="step">ELEVENLABS</span> Hisobingiz</h2>
+    <div class="stats">
+      <div class="stat"><span class="stat-label">Tarif</span><span id="tier" class="stat-val">—</span></div>
+      <div class="stat"><span class="stat-label">Qolgan kredit</span><span id="creditsLeft" class="stat-val">—</span></div>
+      <div class="stat"><span class="stat-label">Yangilanadi</span><span id="creditsReset" class="stat-val">—</span></div>
+    </div>
+    <div class="meter" aria-hidden="true"><div id="meterFill"></div></div>
+    <p id="subStatus" class="hint">API kalit saqlangach, hisobingiz ma'lumotlari shu yerda chiqadi.</p>
+    <div class="links">
+      <a class="link-btn" href="https://elevenlabs.io/app/home" target="_blank" rel="noopener">ElevenLabs'ni ochish ↗<small>Bosh sahifa</small></a>
+      <a class="link-btn" href="https://elevenlabs.io/app/voice-library" target="_blank" rel="noopener">Ovozlar kutubxonasi ↗<small>Yangi ovozlar qo'shish</small></a>
+      <a class="link-btn" href="https://elevenlabs.io/app/subscription" target="_blank" rel="noopener">Tarif va to'lov ↗<small>Starter'ga o'tish yoki bekor qilish</small></a>
+      <a class="link-btn" href="https://elevenlabs.io/app/settings/api-keys" target="_blank" rel="noopener">API kalitlar ↗<small>Yangi kalit yaratish</small></a>
+    </div>
+    <button id="refreshSub" class="ghost">Hisobni yangilash</button>
+  </section>
+
+  <footer>Ovozlar ElevenLabs orqali yaratiladi. Har bir belgi hisobingizdagi limitdan ayriladi.</footer>
+</main>
+
+<script>
+const API = "https://api.elevenlabs.io/v1";
+const $ = (id) => document.getElementById(id);
+let recordedFiles = [];
+let mediaRec = null, recChunks = [];
+
+function store(k, v) { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} }
+function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function setStatus(el, msg, kind) { el.textContent = msg; el.className = "status" + (kind ? " " + kind : ""); }
+function key() { return $("apiKey").value.replace(/[^\x21-\x7E]/g, ""); }
+
+async function apiError(res) {
+  let msg = res.status + " xato";
+  try {
+    const j = await res.json();
+    const d = j.detail;
+    msg = typeof d === "string" ? d : (d && (d.message || d.status)) || JSON.stringify(j);
+  } catch (e) {}
+  if (res.status === 401) {
+    msg = /permission/i.test(msg)
+      ? "Kalitda kerakli ruxsat yo'q (" + msg + "). Yangi kalitda Text to Speech: Access va Voices: Write qiling yoki Restrict Key'ni o'chiring."
+      : "API kalit qabul qilinmadi (" + msg + "). Kalitni bo'sh joysiz, to'liq nusxalab qo'ying.";
+  }
+  return new Error(msg);
+}
+
+async function loadVoices() {
+  const st = $("keyStatus");
+  if (!key()) { setStatus(st, "API kalitni kiriting.", "err"); return; }
+  setStatus(st, "Ovozlar yuklanmoqda…");
+  try {
+    const res = await fetch(API + "/voices", { headers: { "xi-api-key": key() } });
+    if (!res.ok) throw await apiError(res);
+    const data = await res.json();
+    const sel = $("voiceSelect");
+    const keep = load("ovozchi_voice");
+    sel.innerHTML = "";
+    allVoices = (data.voices || []).sort((a, b) => (a.category === "cloned" ? -1 : 1) - (b.category === "cloned" ? -1 : 1));
+    for (const v of allVoices) {
+      const o = document.createElement("option");
+      o.value = v.voice_id;
+      o.textContent = v.name + (v.category === "cloned" ? " (klon)" : "");
+      sel.appendChild(o);
+    }
+    if (keep && allVoices.some(v => v.voice_id === keep)) sel.value = keep;
+    renderVoices();
+    setStatus(st, allVoices.length + " ta ovoz topildi.", "ok");
+  } catch (e) {
+    setStatus(st, "Ulanib bo'lmadi: " + e.message, "err");
+  }
+}
+
+let allVoices = [];
+const previewAudio = new Audio();
+let previewBtn = null;
+const generatedPreviews = {};
+
+function voiceMeta(v) {
+  if (v.category === "cloned") return "Sizning klon ovozingiz";
+  const l = v.labels || {};
+  const g = { male: "erkak", female: "ayol" }[l.gender] || l.gender;
+  return [g, l.accent, l.age].filter(Boolean).join(" · ") || "Tayyor ovoz";
+}
+
+function selectVoice(id) {
+  $("voiceSelect").value = id;
+  store("ovozchi_voice", id);
+  document.querySelectorAll(".voice").forEach(el => el.setAttribute("aria-checked", el.dataset.id === id ? "true" : "false"));
+}
+
+function stopPreview() {
+  previewAudio.pause();
+  if (previewBtn) { previewBtn.classList.remove("playing"); previewBtn.textContent = "▶"; previewBtn.setAttribute("aria-label", "Namunani eshitish"); }
+  previewBtn = null;
+}
+previewAudio.onended = stopPreview;
+
+async function playPreview(v, btn) {
+  if (previewBtn === btn) { stopPreview(); return; }
+  stopPreview(); stopSample();
+  let src = v.preview_url || generatedPreviews[v.voice_id];
+  if (!src) {
+    const ok = await confirmCost($("voiceList"), "Namuna yaratish",
+      costLines(SAMPLE_TEXT.length, "Bu ovozda tayyor namuna yo'q, shuning uchun qisqa gap yaratiladi."));
+    if (!ok) return;
+    btn.textContent = "…";
+    const before = await getSubscription();
+    try {
+      const blob = await ttsChunk(v.voice_id, "eleven_v3", SAMPLE_TEXT, true)
+        .catch(() => ttsChunk(v.voice_id, "eleven_v3", SAMPLE_TEXT, false));
+      src = generatedPreviews[v.voice_id] = await dataUrl(blob);
+      reportActual(before, $("ttsStatus"), "Namuna tayyor.");
+    } catch (e) {
+      btn.textContent = "▶";
+      setStatus($("ttsStatus"), "Namunani eshittirib bo'lmadi: " + e.message, "err");
+      return;
+    }
+  }
+  previewAudio.src = src;
+  previewBtn = btn;
+  btn.classList.add("playing"); btn.textContent = "■"; btn.setAttribute("aria-label", "To'xtatish");
+  previewAudio.play().catch(() => stopPreview());
+}
+
+function renderVoices() {
+  const list = $("voiceList");
+  const q = $("voiceFilter").value.trim().toLowerCase();
+  const items = allVoices.filter(v => !q || (v.name + " " + voiceMeta(v)).toLowerCase().includes(q));
+  list.innerHTML = "";
+  if (!items.length) { list.innerHTML = '<p class="hint" style="padding:12px">Hech narsa topilmadi.</p>'; return; }
+  const current = $("voiceSelect").value;
+  for (const v of items) {
+    const row = document.createElement("div");
+    row.className = "voice"; row.dataset.id = v.voice_id;
+    row.setAttribute("role", "radio"); row.tabIndex = 0;
+    row.setAttribute("aria-checked", v.voice_id === current ? "true" : "false");
+    const btn = document.createElement("button");
+    btn.type = "button"; btn.className = "play"; btn.textContent = "▶";
+    btn.setAttribute("aria-label", "Namunani eshitish");
+    btn.onclick = (e) => { e.stopPropagation(); playPreview(v, btn); };
+    const name = document.createElement("span");
+    name.className = "name";
+    name.textContent = v.name + (v.category === "cloned" ? " (klon)" : "");
+    const meta = document.createElement("span");
+    meta.className = "meta"; meta.textContent = voiceMeta(v);
+    name.appendChild(meta);
+    const tick = document.createElement("span");
+    tick.className = "tick"; tick.textContent = "✓";
+    row.append(btn, name, tick);
+    row.onclick = () => selectVoice(v.voice_id);
+    row.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectVoice(v.voice_id); } };
+    list.appendChild(row);
+  }
+}
+$("voiceFilter").oninput = renderVoices;
+
+$("saveKey").onclick =() => { store("ovozchi_key", key()); loadVoices(); };
+$("clearKey").onclick = () => { $("apiKey").value = ""; store("ovozchi_key", null); setStatus($("keyStatus"), "Kalit o'chirildi.", "ok"); };
+$("voiceSelect").onchange = (e) => store("ovozchi_voice", e.target.value);
+$("modelSelect").onchange = (e) => { $("customModelWrap").hidden = e.target.value !== "custom"; };
+
+const sampleAudio = new Audio();
+let sampleBtn = null;
+function stopSample() {
+  sampleAudio.pause();
+  if (sampleBtn) { sampleBtn.classList.remove("playing"); sampleBtn.textContent = "▶"; }
+  sampleBtn = null;
+}
+sampleAudio.onended = stopSample;
+
+// Decode any format the device can read and re-encode as mono 22 kHz WAV, which every browser plays and ElevenLabs accepts.
+async function toWav(file) {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  const ctx = new AC();
+  const buf = await new Promise((res, rej) => {
+    file.arrayBuffer().then(ab => {
+      const p = ctx.decodeAudioData(ab, res, rej);
+      if (p && p.then) p.then(res, rej);
+    }, rej);
+  });
+  ctx.close && ctx.close();
+  const rate = 22050;
+  const maxSec = 300; // ElevenLabs needs only a few minutes
+  const len = Math.min(Math.ceil(buf.duration * rate), rate * maxSec);
+  const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+  const off = new OAC(1, len, rate);
+  const node = off.createBufferSource(); node.buffer = buf; node.connect(off.destination); node.start();
+  const out = await new Promise((res, rej) => { const p = off.startRendering(); if (p && p.then) p.then(res, rej); else off.oncomplete = e => res(e.renderedBuffer); });
+  const data = out.getChannelData(0);
+  const bytes = new DataView(new ArrayBuffer(44 + data.length * 2));
+  const w = (o, str) => { for (let i = 0; i < str.length; i++) bytes.setUint8(o + i, str.charCodeAt(i)); };
+  w(0, "RIFF"); bytes.setUint32(4, 36 + data.length * 2, true); w(8, "WAVE"); w(12, "fmt ");
+  bytes.setUint32(16, 16, true); bytes.setUint16(20, 1, true); bytes.setUint16(22, 1, true);
+  bytes.setUint32(24, rate, true); bytes.setUint32(28, rate * 2, true); bytes.setUint16(32, 2, true); bytes.setUint16(34, 16, true);
+  w(36, "data"); bytes.setUint32(40, data.length * 2, true);
+  for (let i = 0; i < data.length; i++) { const v = Math.max(-1, Math.min(1, data[i])); bytes.setInt16(44 + i * 2, v < 0 ? v * 0x8000 : v * 0x7FFF, true); }
+  const name = file.name.replace(/\.[^.]+$/, "") + ".wav";
+  const wav = new File([bytes.buffer], name, { type: "audio/wav" });
+  wav._converted = true;
+  return wav;
+}
+
+function dataUrl(blob) {
+  return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(blob); });
+}
+let sharedCtx = null, webSrc = null, webBtn = null;
+function audioCtx() { if (!sharedCtx) sharedCtx = new (window.AudioContext || window.webkitAudioContext)(); return sharedCtx; }
+async function decodeFile(file) {
+  const ctx = audioCtx();
+  const ab = await file.arrayBuffer();
+  return new Promise((res, rej) => { const p = ctx.decodeAudioData(ab, res, rej); if (p && p.then) p.then(res, rej); });
+}
+function stopWebAudio() {
+  if (webSrc) { try { webSrc.stop(); } catch (e) {} webSrc = null; }
+  if (webBtn) { webBtn.textContent = "▶ Eshitish"; webBtn = null; }
+}
+function playWebAudio(buf, btn) {
+  if (webBtn === btn) { stopWebAudio(); return; }
+  stopWebAudio(); stopPreview();
+  const ctx = audioCtx(); if (ctx.state === "suspended") ctx.resume();
+  webSrc = ctx.createBufferSource(); webSrc.buffer = buf; webSrc.connect(ctx.destination);
+  webSrc.onended = () => { if (webBtn === btn) stopWebAudio(); };
+  webSrc.start(); webBtn = btn; btn.textContent = "■ To'xtatish";
+}
+
+function fmtDur(sec) {
+  if (!isFinite(sec)) return "";
+  const m = Math.floor(sec / 60), s = Math.round(sec % 60);
+  return m + ":" + String(s).padStart(2, "0");
+}
+
+function renderFiles() {
+  stopSample();
+  const list = $("fileList"); list.innerHTML = "";
+  recordedFiles.forEach((f, i) => {
+    const card = document.createElement("div"); card.className = "sample";
+    const top = document.createElement("div"); top.className = "sample-top";
+    const info = document.createElement("span"); info.className = "name";
+    info.textContent = f.name;
+    const meta = document.createElement("span"); meta.className = "meta";
+    meta.textContent = (f.size / 1024 / 1024).toFixed(2) + " MB";
+    info.appendChild(meta);
+    const del = document.createElement("button");
+    del.type = "button"; del.className = "ghost del"; del.textContent = "✕";
+    del.setAttribute("aria-label", "Olib tashlash");
+    del.onclick = () => { recordedFiles.splice(i, 1); renderFiles(); };
+    top.append(info, del);
+    const audio = document.createElement("audio");
+    audio.controls = true; audio.preload = "metadata"; audio.setAttribute("playsinline", "");
+    audio.onloadedmetadata = () => { const d = fmtDur(audio.duration); if (d) meta.textContent = d + " · " + (f.size / 1024 / 1024).toFixed(2) + " MB"; };
+    audio.onplay = () => { stopPreview(); stopWebAudio(); document.querySelectorAll("#fileList audio").forEach(a => { if (a !== audio) a.pause(); }); };
+    const warn = document.createElement("p"); warn.className = "hint"; warn.hidden = true;
+    const say = (t, err) => { warn.hidden = false; warn.className = err ? "hint err-text" : "hint"; warn.textContent = t; };
+    // Stage 1: the file itself as a data: URL. Stage 2: converted WAV. Stage 3: play through Web Audio.
+    const useWebAudio = async () => {
+      try {
+        const buf = await decodeFile(f);
+        audio.hidden = true;
+        const btn = document.createElement("button");
+        btn.type = "button"; btn.className = "ghost"; btn.textContent = "▶ Eshitish";
+        btn.onclick = () => playWebAudio(buf, btn);
+        meta.textContent = fmtDur(buf.duration) + " · " + (f.size / 1024 / 1024).toFixed(2) + " MB";
+        card.insertBefore(btn, warn);
+        say("Telefon ovozsiz rejimda bo'lsa, eshitilmasligi mumkin.");
+      } catch (e) {
+        say("Bu faylni ochib bo'lmadi (himoyalangan yoki buzilgan bo'lishi mumkin). Boshqa yozuvni tanlang.", true);
+      }
+    };
+    let stage = 1;
+    audio.onerror = async () => {
+      if (stage === 1 && !f._converted) {
+        stage = 2; say("Format moslashtirilmoqda…");
+        try { const wav = await toWav(f); f._wav = wav; audio.src = await dataUrl(wav); return; }
+        catch (e) { stage = 3; }
+      }
+      if (stage < 3) { stage = 3; }
+      useWebAudio();
+    };
+    dataUrl(f).then(u => { audio.src = u; });
+    card.append(top, audio, warn);
+    list.appendChild(card);
+  });
+}
+$("voiceFiles").onchange = (e) => {
+  recordedFiles.push(...e.target.files);
+  e.target.value = "";
+  renderFiles();
+};
+
+$("recBtn").onclick = async () => {
+  if (mediaRec && mediaRec.state === "recording") { mediaRec.stop(); return; }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    $("recInfo").textContent = "Bu oynada mikrofon ishlamaydi. Faylni Chrome'da to'g'ridan-to'g'ri oching (Claude ilovasi yoki fayl ko'ruvchi ichida emas) yoki yozuvni fayl qilib yuklang.";
+    return;
+  }
+  if (typeof MediaRecorder === "undefined") {
+    $("recInfo").textContent = "Brauzeringiz ovoz yozishni qo'llamaydi. Chrome'ning yangi versiyasini oching yoki yozuvni fayl qilib yuklang.";
+    return;
+  }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRec = new MediaRecorder(stream); recChunks = [];
+    mediaRec.ondataavailable = (e) => e.data.size && recChunks.push(e.data);
+    mediaRec.onstop = () => {
+      stream.getTracks().forEach(t => t.stop());
+      const type = mediaRec.mimeType || "audio/webm";
+      const ext = type.includes("mp4") ? "m4a" : type.includes("ogg") ? "ogg" : "webm";
+      recordedFiles.push(new File(recChunks, "yozuv-" + (recordedFiles.length + 1) + "." + ext, { type }));
+      $("recBtn").textContent = "🎙 Yana yozish";
+      $("recInfo").textContent = "Yozuv qo'shildi.";
+      renderFiles();
+    };
+    mediaRec.start();
+    $("recBtn").textContent = "■ To'xtatish";
+    $("recInfo").innerHTML = '<span class="rec-dot"></span> Yozilmoqda… Matnni tabiiy ovozda o\'qing.';
+  } catch (e) {
+    const n = e && e.name;
+    let framed = false;
+    try { framed = window.top !== window.self; } catch (x) { framed = true; }
+    if (n === "NotAllowedError" && framed) {
+      $("recInfo").textContent = "Sahifa boshqa sayt (masalan tiiny.host preview) ichida ochilgan, u mikrofonni bloklaydi. Diktofonda yozib, faylni yuklang yoki saytni o'z havolasida oching.";
+      return;
+    }
+    $("recInfo").textContent =
+      n === "NotAllowedError" ? "Mikrofonga ruxsat berilmadi. Manzil satridagi 🔒 belgisini bosib, Microphone → Allow qiling va sahifani yangilang." :
+      n === "NotFoundError" ? "Mikrofon topilmadi. Mikrofon ulanganini tekshiring." :
+      n === "NotReadableError" ? "Mikrofon boshqa dastur tomonidan band (Zoom, Telegram va h.k.). Uni yopib qayta urinib ko'ring." :
+      "Mikrofon ishlamadi (" + (n || e) + "). Yozuvni fayl qilib yuklang.";
+  }
+};
+
+$("cloneBtn").onclick = async () => {
+  const st = $("cloneStatus");
+  const files = recordedFiles.map(f => f._wav || f);
+  if (!key()) return setStatus(st, "Avval 1-qadamda API kalitni kiriting.", "err");
+  if (!$("voiceName").value.trim()) return setStatus(st, "Ovozga nom bering.", "err");
+  if (!files.length) return setStatus(st, "Kamida bitta ovoz yozuvini qo'shing.", "err");
+  if (!$("consent").checked) return setStatus(st, "Ruxsat haqidagi belgini tasdiqlang.", "err");
+  const fd = new FormData();
+  fd.append("name", $("voiceName").value.trim());
+  fd.append("description", "O'zbekcha klon ovoz (Ovozchi)");
+  fd.append("remove_background_noise", "true");
+  files.forEach(f => fd.append("files", f, f.name));
+  const sub = await getSubscription();
+  const lines = [["Kredit", "odatda sarflanmaydi"]];
+  if (sub) {
+    lines.push(["Ovoz o'rinlari", (sub.voice_slots_used ?? "?") + " band / " + (sub.voice_limit ?? "?") + " → klondan keyin " + ((sub.voice_slots_used ?? 0) + 1)]);
+    if (sub.can_use_instant_voice_cloning === false) lines.push(["Diqqat", "Tarifingiz (" + sub.tier + ") klonlashga ruxsat bermaydi. Avval Starter yoki undan yuqori tarifga o'ting.", "warn"]);
+  }
+  const ok = await confirmCost($("cloneBtn"), "Ovozni klonlash", lines);
+  if (!ok) return;
+  $("cloneBtn").disabled = true;
+  setStatus(st, "Klonlanmoqda, bir oz kuting…");
+  try {
+    const res = await fetch(API + "/voices/add", { method: "POST", headers: { "xi-api-key": key() }, body: fd });
+    if (!res.ok) throw await apiError(res);
+    const data = await res.json();
+    store("ovozchi_voice", data.voice_id);
+    await loadVoices();
+    selectVoice(data.voice_id);
+    reportActual(sub, st, "Tayyor! Yangi ovoz 3-qadamda tanlandi.");
+  } catch (e) {
+    setStatus(st, "Klonlab bo'lmadi: " + e.message, "err");
+  } finally { $("cloneBtn").disabled = false; }
+};
+
+function updateCount() {
+  const n = $("textIn").value.trim().length;
+  let t = n.toLocaleString() + " belgi · ≈" + n.toLocaleString() + " kredit";
+  if (subState) {
+    const left = subState.character_limit - subState.character_count;
+    t += left < n ? " · yetmaydi!" : " · keyin ≈" + (left - n).toLocaleString() + " qoladi";
+  }
+  $("charCount").textContent = t;
+  $("charCount").classList.toggle("over", !!subState && (subState.character_limit - subState.character_count) < n);
+}
+$("textIn").oninput = updateCount;
+
+function chunkText(text, max) {
+  const parts = text.replace(/\s+\n/g, "\n").match(/[^.!?\n]+[.!?\n]*\s*/g) || [text];
+  const out = []; let cur = "";
+  for (const p of parts) {
+    if ((cur + p).length > max && cur) { out.push(cur.trim()); cur = ""; }
+    if (p.length > max) { for (let i = 0; i < p.length; i += max) out.push(p.slice(i, i + max).trim()); }
+    else cur += p;
+  }
+  if (cur.trim()) out.push(cur.trim());
+  return out.filter(Boolean);
+}
+
+async function ttsChunk(voiceId, model, text, withLang) {
+  const body = { text, model_id: model };
+  if (withLang) body.language_code = "uz";
+  const res = await fetch(API + "/text-to-speech/" + encodeURIComponent(voiceId) + "?output_format=mp3_44100_128", {
+    method: "POST",
+    headers: { "xi-api-key": key(), "Content-Type": "application/json", "Accept": "audio/mpeg" },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw await apiError(res);
+  return res.blob();
+}
+
+$("speakBtn").onclick = async () => {
+  const st = $("ttsStatus");
+  const text = $("textIn").value.trim();
+  const voiceId = $("voiceSelect").value;
+  let model = $("modelSelect").value;
+  if (model === "custom") model = $("customModel").value.trim();
+  if (!key()) return setStatus(st, "Avval API kalitni kiriting.", "err");
+  if (!voiceId) return setStatus(st, "Ovozni tanlang.", "err");
+  if (!model) return setStatus(st, "Model ID ni kiriting.", "err");
+  if (!text) return setStatus(st, "Matn yozing.", "err");
+  const chunks = chunkText(text, 2500);
+  stopPreview();
+  const ok = await confirmCost($("speakBtn").parentElement, "Ovozga aylantirish",
+    costLines(text.length, chunks.length > 1 ? "Uzun matn " + chunks.length + " qismga bo'lib yaratiladi." : ""));
+  if (!ok) return;
+  const before = await getSubscription();
+  $("speakBtn").disabled = true;
+  const blobs = [];
+  let withLang = true;
+  try {
+    for (let i = 0; i < chunks.length; i++) {
+      setStatus(st, "Ovoz yaratilmoqda… " + (i + 1) + "/" + chunks.length);
+      try { blobs.push(await ttsChunk(voiceId, model, chunks[i], withLang)); }
+      catch (e) {
+        if (withLang && /language/i.test(e.message)) { withLang = false; blobs.push(await ttsChunk(voiceId, model, chunks[i], false)); }
+        else throw e;
+      }
+    }
+    const mp3 = new Blob(blobs, { type: "audio/mpeg" });
+    const url = await dataUrl(mp3);
+    const title = $("clipName").value.trim() || text.split(/\s+/).slice(0, 5).join(" ");
+    const voiceName = $("voiceSelect").selectedOptions[0]?.textContent || "";
+    addClip(title, voiceName, url, text.length);
+    $("clipName").value = "";
+    reportActual(before, st, "Tayyor: «" + title + "». Pastda tinglang yoki MP3 qilib yuklab oling.");
+  } catch (e) {
+    setStatus(st, "Ovoz yaratib bo'lmadi: " + e.message, "err");
+  } finally { $("speakBtn").disabled = false; }
+};
+
+function fileName(title) {
+  const base = title.replace(/[\\/:*?"<>|]+/g, "").replace(/\s+/g, " ").trim().slice(0, 60) || "ovoz";
+  return base + ".mp3";
+}
+
+function addClip(title, voiceName, url, chars) {
+  const card = document.createElement("div");
+  card.className = "clip";
+  const t = document.createElement("div");
+  t.className = "clip-title"; t.textContent = title;
+  const meta = document.createElement("div");
+  meta.className = "clip-meta";
+  meta.textContent = [voiceName, chars.toLocaleString() + " belgi", new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })].filter(Boolean).join(" · ");
+  const audio = document.createElement("audio");
+  audio.controls = true; audio.src = url;
+  const a = document.createElement("a");
+  a.className = "btn"; a.href = url; a.download = fileName(title); a.textContent = "MP3 yuklab olish";
+  const row = document.createElement("div"); row.className = "row"; row.appendChild(a);
+  card.append(t, meta, audio, row);
+  $("clips").prepend(card);
+  $("clipsSection").hidden = false;
+}
+
+const SAMPLE_TEXT = "Assalomu alaykum! Bu mening ovozim.";
+let subState = null;
+
+async function getSubscription() {
+  if (!key()) return null;
+  try {
+    let res = await fetch(API + "/user/subscription?t=" + Date.now(), { headers: { "xi-api-key": key() } });
+    if (res.ok) subState = await res.json();
+    else {
+      const first = await apiError(res);
+      const res2 = await fetch(API + "/user?t=" + Date.now(), { headers: { "xi-api-key": key() } });
+      if (!res2.ok) throw first;
+      const u = await res2.json();
+      if (!u.subscription) throw first;
+      subState = u.subscription;
+    }
+    renderSubscription();
+    return subState;
+  } catch (e) {
+    $("subStatus").textContent = "Hisob ma'lumotini olib bo'lmadi: " + e.message;
+    $("subStatus").classList.add("err-text");
+    return null;
+  }
+}
+
+function creditsLeft(s) { return Math.max(0, (s.character_limit || 0) - (s.character_count || 0)); }
+
+function renderSubscription() {
+  const s = subState; if (!s) return;
+  const limit = s.character_limit || 0, left = creditsLeft(s);
+  $("tier").textContent = s.tier ? s.tier.charAt(0).toUpperCase() + s.tier.slice(1) : "—";
+  $("creditsLeft").textContent = left.toLocaleString() + " / " + limit.toLocaleString();
+  $("creditsReset").textContent = s.next_character_count_reset_unix
+    ? new Date(s.next_character_count_reset_unix * 1000).toLocaleDateString([], { day: "numeric", month: "short" })
+    : "—";
+  $("meterFill").style.width = (limit ? Math.min(100, (left / limit) * 100) : 0) + "%";
+  updateCount();
+}
+
+async function loadSubscription() {
+  const st = $("subStatus"), btn = $("refreshSub");
+  if (!key()) { st.textContent = "Avval 1-qadamda API kalitni saqlang."; return; }
+  btn.disabled = true; btn.textContent = "Yangilanmoqda…";
+  const s = await getSubscription();
+  btn.disabled = false; btn.textContent = "Hisobni yangilash";
+  if (s) st.classList.remove("err-text");
+  if (s) st.textContent = "Yangilandi: " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }) + ". Taxminan 1 harf = 1 kredit.";
+}
+$("refreshSub").onclick = loadSubscription;
+$("saveKey").addEventListener("click", () => setTimeout(loadSubscription, 0));
+
+// Cost preview: lines are [label, value, kind?]
+function costLines(chars, note) {
+  const lines = [["Taxminiy sarf", "≈" + chars.toLocaleString() + " kredit (" + chars.toLocaleString() + " belgi)"]];
+  if (subState) {
+    const left = creditsLeft(subState);
+    lines.push(["Hozir bor", left.toLocaleString() + " kredit"]);
+    if (left < chars) lines.push(["Diqqat", "Kredit yetmaydi. Matnni qisqartiring yoki tarifni oshiring.", "warn"]);
+    else lines.push(["Keyin qoladi", "≈" + (left - chars).toLocaleString() + " kredit"]);
+  }
+  if (note) lines.push(["Izoh", note]);
+  return lines;
+}
+
+let openConfirm = null;
+function confirmCost(anchor, action, lines) {
+  if (openConfirm) openConfirm(false);
+  return new Promise(resolve => {
+    const box = document.createElement("div");
+    box.className = "confirm"; box.setAttribute("role", "dialog"); box.setAttribute("aria-label", action);
+    const h = document.createElement("div"); h.className = "confirm-title"; h.textContent = action + " — oldindan hisob";
+    const dl = document.createElement("dl");
+    for (const [k, v, kind] of lines) {
+      const dt = document.createElement("dt"); dt.textContent = k;
+      const dd = document.createElement("dd"); dd.textContent = v; if (kind) dd.className = kind;
+      dl.append(dt, dd);
+    }
+    const row = document.createElement("div"); row.className = "row";
+    const yes = document.createElement("button"); yes.type = "button"; yes.textContent = "Ha, davom etish";
+    const no = document.createElement("button"); no.type = "button"; no.className = "ghost"; no.textContent = "Bekor qilish";
+    row.append(yes, no);
+    box.append(h, dl, row);
+    anchor.insertAdjacentElement("afterend", box);
+    const done = (v) => { box.remove(); openConfirm = null; resolve(v); };
+    openConfirm = done;
+    yes.onclick = () => done(true);
+    no.onclick = () => done(false);
+    yes.focus();
+  });
+}
+
+async function reportActual(before, st, msg) {
+  setStatus(st, msg, "ok");
+  if (!before) return;
+  await new Promise(r => setTimeout(r, 1500));
+  const after = await getSubscription();
+  if (!after) return;
+  const spent = (after.character_count || 0) - (before.character_count || 0);
+  setStatus(st, msg + " Haqiqiy sarf: " + Math.max(0, spent).toLocaleString() + " kredit. Qoldi: " + creditsLeft(after).toLocaleString() + ".", "ok");
+}
+
+const saved = load("ovozchi_key");
+if (saved) { $("apiKey").value = saved; loadVoices(); loadSubscription(); }
+updateCount();
+</script>
+</body>
+</html>
