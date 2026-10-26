@@ -63,17 +63,18 @@ main {
 }
 .lang button[aria-pressed="true"] { background: var(--ink); color: #fff; }
 
-.logo-wrap { position: relative; width: 132px; height: 132px; margin-bottom: 22px; }
+.logo-wrap { position: relative; width: 136px; height: 136px; margin-bottom: 24px; animation: float 4s ease-in-out infinite; }
 .logo-wrap::before {
-  content: ""; position: absolute; inset: -46px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(139, 92, 246, .45), rgba(34, 211, 238, .25) 45%, transparent 70%);
+  content: ""; position: absolute; inset: -50px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(139, 92, 246, .50), rgba(34, 211, 238, .28) 45%, transparent 70%);
   animation: breathe 3.2s ease-in-out infinite;
 }
-.logo {
-  position: relative; width: 132px; height: 132px; border-radius: 31px; display: block;
-  box-shadow: 0 18px 40px -12px rgba(79, 70, 229, .55);
-  animation: pop .7s cubic-bezier(.34, 1.56, .64, 1) both;
-}
+.logo { position: relative; display: block; width: 136px; height: 136px; overflow: visible;
+  filter: drop-shadow(0 18px 22px rgba(79, 70, 229, .40)); animation: pop .8s cubic-bezier(.34, 1.56, .64, 1) both; }
+.logo .sp1 { transform-origin: 103px 33px; animation: twinkle 2.2s ease-in-out infinite; }
+.logo .sp2 { transform-origin: 118px 58px; animation: twinkle 2.2s ease-in-out .9s infinite; }
+.logo .shine { animation: shine 4.5s ease-in-out 1s infinite; }
+.logo .play { transform-origin: 62px 70px; animation: beat 4.5s ease-in-out 1.6s infinite; }
 h1 { font-weight: 900; font-size: clamp(36px, 10vw, 46px); letter-spacing: -.02em; line-height: 1.05; }
 h1 .ai {
   background: linear-gradient(90deg, var(--violet), var(--indigo) 55%, var(--cyan));
@@ -83,26 +84,43 @@ h1 .ai {
 
 .links { width: 100%; display: flex; flex-direction: column; gap: 14px; margin-top: 30px; }
 .btn {
+  position: relative; overflow: hidden; isolation: isolate;
   display: flex; align-items: center; gap: 14px; width: 100%;
   padding: 12px 18px 12px 12px; border-radius: 999px; text-decoration: none; color: var(--ink);
   background: var(--card); border: 1px solid var(--line);
   box-shadow: 0 10px 28px -14px rgba(40, 30, 90, .45);
   transition: transform .15s ease, box-shadow .15s ease;
-  opacity: 0; animation: slide .55s cubic-bezier(.22, 1, .36, 1) forwards;
+  opacity: 0; animation: slide .6s cubic-bezier(.22, 1, .36, 1) forwards;
 }
+.btn::after { /* light sweeping across the button */
+  content: ""; position: absolute; z-index: -1; top: 0; bottom: 0; left: -40%; width: 30%;
+  background: linear-gradient(100deg, transparent, rgba(124, 58, 237, .10) 40%, rgba(6, 182, 212, .14) 60%, transparent);
+  transform: skewX(-18deg); animation: sweep 5s ease-in-out infinite;
+}
+.btn:nth-child(2)::after { animation-delay: 1.6s; }
+.btn:nth-child(3)::after { animation-delay: 3.2s; }
 .btn:nth-child(1) { animation-delay: .25s; --from: -40px; }
 .btn:nth-child(2) { animation-delay: .40s; --from: 40px; }
 .btn:nth-child(3) { animation-delay: .55s; --from: -40px; }
 .btn:active { transform: scale(.98); }
 @media (hover: hover) { .btn:hover { transform: translateY(-2px); box-shadow: 0 16px 34px -14px rgba(40, 30, 90, .55); } }
 .badge {
-  flex: none; width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center;
-  box-shadow: inset 0 10px 16px -10px rgba(255, 255, 255, .7);
+  position: relative; flex: none; width: 50px; height: 50px; border-radius: 50%; display: grid; place-items: center;
+  box-shadow: inset 0 10px 16px -10px rgba(255, 255, 255, .75), 0 6px 14px -6px var(--glow);
 }
-.badge svg { width: 26px; height: 26px; fill: #fff; }
-.ig { background: linear-gradient(45deg, #FEDA75 0%, #F58529 25%, #DD2A7B 55%, #8134AF 85%); }
-.tg { background: linear-gradient(180deg, #37BBFE, #0088CC); }
-.ph { background: linear-gradient(180deg, #4ADE80, #16A34A); }
+.badge::before { /* soft ring that pulses out of the badge */
+  content: ""; position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--glow);
+  animation: ping 2.4s cubic-bezier(0, 0, .2, 1) infinite;
+}
+.badge svg { position: relative; width: 27px; height: 27px; fill: #fff; }
+.ig { --glow: rgba(221, 42, 123, .55); background: linear-gradient(45deg, #FEDA75 0%, #F58529 25%, #DD2A7B 55%, #8134AF 85%);
+  background-size: 180% 180%; animation: igmove 4s ease-in-out infinite; }
+.ig svg { animation: heart 2.4s ease-in-out infinite; }
+.tg { --glow: rgba(0, 136, 204, .55); background: linear-gradient(180deg, #37BBFE, #0088CC); }
+.tg::before { animation-delay: .8s; }
+.tg svg { animation: fly 2.6s ease-in-out infinite; }
+.ph { --glow: rgba(22, 163, 74, .55); background: linear-gradient(180deg, #4ADE80, #16A34A); }
+.ph::before { animation-delay: 1.6s; }
 .ph svg { animation: ring 2.4s ease-in-out infinite; transform-origin: 50% 50%; }
 .txt { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; text-align: left; }
 .txt b { font-weight: 800; font-size: 18px; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
@@ -122,6 +140,15 @@ footer { margin-top: 26px; font-weight: 600; font-size: 12px; color: #8A91A3; }
 @keyframes slide { from { opacity: 0; transform: translateX(var(--from)); } to { opacity: 1; transform: none; } }
 @keyframes ring { 0%, 62%, 100% { transform: rotate(0); } 66% { transform: rotate(-14deg); } 70% { transform: rotate(13deg); }
   74% { transform: rotate(-11deg); } 78% { transform: rotate(9deg); } 82% { transform: rotate(-5deg); } 86% { transform: rotate(0); } }
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+@keyframes twinkle { 0%, 100% { transform: scale(1) rotate(0); opacity: 1; } 50% { transform: scale(.55) rotate(45deg); opacity: .65; } }
+@keyframes shine { 0%, 55% { transform: translateX(-160px); } 85%, 100% { transform: translateX(170px); } }
+@keyframes beat { 0%, 70%, 100% { transform: scale(1); } 78% { transform: scale(1.12); } 86% { transform: scale(.97); } }
+@keyframes sweep { 0%, 55% { left: -40%; } 100% { left: 120%; } }
+@keyframes ping { 0% { transform: scale(1); opacity: .9; } 80%, 100% { transform: scale(1.55); opacity: 0; } }
+@keyframes heart { 0%, 100% { transform: scale(1); } 15% { transform: scale(1.16); } 30% { transform: scale(.96); } 45% { transform: scale(1.1); } 60% { transform: scale(1); } }
+@keyframes fly { 0%, 100% { transform: translate(0, 0) rotate(0); } 25% { transform: translate(2px, -3px) rotate(-8deg); } 50% { transform: translate(3px, -1px) rotate(4deg); } 75% { transform: translate(-1px, 1px) rotate(-3deg); } }
+@keyframes igmove { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
 @media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; } .btn { opacity: 1; } }
 </style>
 </head>
@@ -133,7 +160,30 @@ footer { margin-top: 26px; font-weight: 600; font-size: 12px; color: #8A91A3; }
     <button type="button" data-l="en" aria-pressed="false">EN</button>
   </div>
 
-  <div class="logo-wrap"><img class="logo" src="icon.png" width="132" height="132" alt="My AI Studio"></div>
+  <div class="logo-wrap">
+    <svg class="logo" viewBox="0 0 136 136" role="img" aria-label="My AI Studio">
+      <defs>
+        <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#8B5CF6"/><stop offset=".5" stop-color="#4F46E5"/><stop offset="1" stop-color="#06B6D4"/>
+        </linearGradient>
+        <linearGradient id="gl" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#fff" stop-opacity=".32"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/>
+        </linearGradient>
+        <linearGradient id="sh" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+        </linearGradient>
+        <clipPath id="cp"><rect width="136" height="136" rx="32"/></clipPath>
+      </defs>
+      <g clip-path="url(#cp)">
+        <rect width="136" height="136" fill="url(#lg)"/>
+        <rect width="136" height="136" fill="url(#gl)"/>
+        <rect class="shine" x="0" y="-30" width="40" height="200" fill="url(#sh)" transform="translate(-160 0)" style="transform-box: view-box"/>
+      </g>
+      <path class="play" d="M47 41.5c0-3.4 3.7-5.5 6.6-3.7l39 25.7c2.6 1.7 2.6 5.6 0 7.3l-39 25.7c-2.9 1.9-6.6-.2-6.6-3.7z" fill="#fff"/>
+      <path class="sp1" d="M103 15c1.4 9.5 4.5 12.6 14 14-9.5 1.4-12.6 4.5-14 14-1.4-9.5-4.5-12.6-14-14 9.5-1.4 12.6-4.5 14-14z" fill="#FFC93C"/>
+      <path class="sp2" d="M118 50c.7 4.5 2.4 6.2 7 7-4.6.8-6.3 2.5-7 7-.7-4.5-2.4-6.2-7-7 4.6-.8 6.3-2.5 7-7z" fill="#fff"/>
+    </svg>
+  </div>
   <h1>My <span class="ai">AI</span> Studio</h1>
   <p class="tag" data-t="tag">AI bilan professional reklama video buyurtma qiling</p>
 
